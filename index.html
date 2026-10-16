@@ -54,13 +54,13 @@ td{padding:6px 4px;border-bottom:1px solid var(--line)}
 </head>
 <body>
 <main>
- <section class="center" id="loading"><p class="mute">Load ho raha hai...</p></section>
+ <section class="center" id="loading"><p class="mute">Loading...</p></section>
 
  <section class="center" id="loginView" style="display:none">
   <div class="panel card">
    <h1>Training tracker</h1>
-   <p class="mute">ID aur password likho.</p>
-   <input id="lid" type="text" placeholder="ID (jaise admin ya ravi)" aria-label="ID" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false">
+   <p class="mute"> </p>
+   <input id="lid" type="text" placeholder="Enter your User ID" aria-label="ID" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false">
    <input id="lpass" type="password" placeholder="Password" aria-label="Password" autocomplete="current-password">
    <button class="pri" id="lgo" style="width:100%">Login</button>
    <p class="mute bad" id="lmsg"></p>
@@ -80,7 +80,7 @@ td{padding:6px 4px;border-bottom:1px solid var(--line)}
 
  <section class="center" id="noRole" style="display:none">
   <div class="panel card">
-   <h1>Role nahi mila</h1>
+   <h1>NO Permission</h1>
    <p class="mute"> </p>
    <button data-logout="1">Logout</button>
   </div>
@@ -288,28 +288,28 @@ function exportCsv(kind){
 
 async function doLogin(){
  const id=cleanId($("lid").value),pw=$("lpass").value,m=$("lmsg");
- if(!id||!pw){m.textContent="ID aur password dono likho.";return}
+ if(!id||!pw){m.textContent=" ";return}
  m.textContent="";
  try{await signInWithEmailAndPassword(auth,toEmail(id),pw);$("lpass").value=""}
- catch(e){const c=e.code||"";m.textContent=c.includes("too-many")?"Bahut baar galat try hua. Thodi der baad dobara karo.":c.includes("network")?"Internet check karo.":"ID ya password galat hai."}
+ catch(e){const c=e.code||"";m.textContent=c.includes("too-many")?"try after sametime.":c.includes("network")?"Check your Internet connection.":"Wrong User ID or Password"}
 }
 async function doReset(){
  const id=cleanId($("lid").value),m=$("lmsg");
- if(!id){m.textContent="Upar apni ID likho, phir ye dabao.";return}
+ if(!id){m.textContent="Enter your User ID";return}
  try{await sendPasswordResetEmail(auth,toEmail(id))}catch(e){}
- m.textContent="Reset link head email par bhej diya gaya hai. Admin wo link kholke naya password set karke bata dega."
+ m.textContent=" "
 }
 async function setWho(){
  const v=$("nname").value.trim().slice(0,30),m=$("nmsg");
- if(v.length<2){m.textContent="Apna naam likho (kam se kam 2 akshar).";return}
+ if(v.length<2){m.textContent="Enter your Name";return}
  try{await updateDoc(doc(db,"users",user.uid),{name:v});who=v;m.textContent="";render()}
  catch(e){m.textContent=errMsg(e)}
 }
 async function savePw(){
  const p=$("npw").value,m=$("pwMsg");
- if(p.length<6){m.className="mute bad";m.textContent="Password kam se kam 6 akshar ka rakho.";return}
- try{await updatePassword(auth.currentUser,p);m.className="mute good";m.textContent="Password badal gaya."}
- catch(e){m.className="mute bad";m.textContent=(e.code||"").includes("requires-recent-login")?"Logout karke dobara login karo, phir password badlo.":errMsg(e)}
+ if(p.length<6){m.className="mute bad";m.textContent="Enter Your Password.";return}
+ try{await updatePassword(auth.currentUser,p);m.className="mute good";m.textContent="Password change Successfully."}
+ catch(e){m.className="mute bad";m.textContent=(e.code||"").includes("requires-recent-login")?"first logout then login and change your password.":errMsg(e)}
 }
 function lookup(){
  const en=$("fEnroll").value.trim(),m=$("msg");
