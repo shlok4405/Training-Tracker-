@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -25,6 +25,8 @@ button.pri{background:var(--run);border-color:var(--run);color:var(--on)}
 button.stop{background:var(--bad);border-color:var(--bad);color:var(--on)}
 button.link{background:none;border:0;padding:0;color:var(--run);text-decoration:underline}
 button:disabled{opacity:.45;cursor:not-allowed}
+button.done{background:var(--good);border-color:var(--good);color:var(--on)}
+button.done:disabled{opacity:1;cursor:default}
 :focus-visible{outline:2px solid var(--run);outline-offset:2px}
 .list{display:grid;gap:12px;margin-top:12px}
 .name{font-weight:800;font-size:16px}
@@ -59,29 +61,29 @@ td{padding:6px 4px;border-bottom:1px solid var(--line)}
  <section class="center" id="loginView" style="display:none">
   <div class="panel card">
    <h1>Training tracker</h1>
-   <p class="mute"> </p>
-   <input id="lid" type="text" placeholder="Enter your User ID" aria-label="ID" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false">
+   <p class="mute">Enter your ID and password.</p>
+   <input id="lid" type="text" placeholder="User ID" aria-label="User ID" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false">
    <input id="lpass" type="password" placeholder="Password" aria-label="Password" autocomplete="current-password">
    <button class="pri" id="lgo" style="width:100%">Login</button>
    <p class="mute bad" id="lmsg"></p>
-   <button class="link" id="lreset">Forget Password?</button>
+   <button class="link" id="lreset">Forgot password?</button>
   </div>
  </section>
 
  <section class="center" id="nameView" style="display:none">
   <div class="panel card">
-   <h1>Aapka naam?</h1>
-   <p class="mute"> </p>
-   <input id="nname" type="text" maxlength="30" placeholder="Your Name" aria-label="Your Name" autocomplete="off">
-   <button class="pri" id="ngo" style="width:100%">Aage badho</button>
+   <h1>Your name</h1>
+   <p class="mute">You will only be asked once. This name will show next to Start and Close.</p>
+   <input id="nname" type="text" maxlength="30" placeholder="Your name" aria-label="Your name" autocomplete="off">
+   <button class="pri" id="ngo" style="width:100%">Continue</button>
    <p class="mute bad" id="nmsg"></p>
   </div>
  </section>
 
  <section class="center" id="noRole" style="display:none">
   <div class="panel card">
-   <h1>NO Permission</h1>
-   <p class="mute"> </p>
+   <h1>No permission</h1>
+   <p class="mute">This ID has not been given an Admin or Staff role yet. Please contact the admin.</p>
    <button data-logout="1">Logout</button>
   </div>
  </section>
@@ -93,7 +95,7 @@ td{padding:6px 4px;border-bottom:1px solid var(--line)}
   </div>
   <section class="panel" id="enrollPanel">
    <div class="form">
-    <input id="fEnroll" placeholder="Enter enrollment No." aria-label="Enroll no.">
+    <input id="fEnroll" placeholder="Enter enrollment no." aria-label="Enroll no.">
     <button class="pri" id="add">Enter</button>
     <span class="mute bad" id="msg"></span>
    </div>
@@ -120,14 +122,14 @@ const firebaseConfig = {
   measurementId: "G-Z41B9RKG5K"
 };
 const app=initializeApp(firebaseConfig);
-//
+// Login stays only in this tab: closing the tab logs out, a new tab needs a new login.
 const auth=initializeAuth(app,{persistence:browserSessionPersistence});
 const db=getFirestore(app);
 
 const HEAD="trainingtracker89",REQ=40*3600000;
 const CN={"2W":"Two wheeler","4W":"Four wheeler","TRK":"Truck"};
 let ready=false,user=null,role=null,who="",students=[],sess=[],unsubs=[];
-let found=null,nw=null,editId=null,info="",mon="all",dirty=false;
+let found=null,nw=null,editId=null,info="",mon="all",dirty=false,undoInfo=null;
 
 const $=i=>document.getElementById(i);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -150,7 +152,7 @@ const ml=k=>{const p=k.split("-");return new Date(+p[0],+p[1]-1,1).toLocaleDateS
 function hm(ms,sec){ms=Math.max(0,ms);const h=Math.floor(ms/3600000),m=Math.floor(ms%3600000/60000),s=Math.floor(ms%60000/1000);return h+"h "+m+"m"+(sec?" "+s+"s":"")}
 
 function toast(m){const t=$("toast");t.textContent=m;t.style.display="block";clearTimeout(toast.h);toast.h=setTimeout(()=>t.style.display="none",5000)}
-function errMsg(e){const c=(e&&e.code)||"";if(c.includes("permission-denied"))return"Aapko ye karne ki ijazat nahi hai.";if(c.includes("unavailable")||c.includes("network"))return"Internet ya server ki dikkat hai. Dobara try karo.";return"Nahi ho paya: "+((e&&e.message)||e)}
+function errMsg(e){const c=(e&&e.code)||"";if(c.includes("permission-denied"))return"You do not have permission to do this.";if(c.includes("unavailable")||c.includes("network"))return"Internet or server problem. Please try again.";return"Could not complete: "+((e&&e.message)||e)}
 async function act(fn){try{await fn()}catch(e){toast(errMsg(e))}}
 
 function listen(){
@@ -168,7 +170,7 @@ function listen(){
 function stopListen(){unsubs.forEach(u=>u());unsubs=[];students=[];sess=[]}
 
 onAuthStateChanged(auth,async u=>{
- stopListen();user=u;role=null;who="";found=null;nw=null;editId=null;info="";
+ stopListen();user=u;role=null;who="";found=null;nw=null;editId=null;info="";undoInfo=null;
  if(u){
   try{
    const d=await getDoc(doc(db,"users",u.uid)),x=d.exists()?d.data():{};
@@ -181,11 +183,11 @@ onAuthStateChanged(auth,async u=>{
 
 function laneDyn(s,c){
  const d=done(s.id,c),r=run(s.id),l=last(s.id,c),pct=s.form>0?100:Math.min(100,d/REQ*100);let t;
- if(r&&r.c===c)t='<span class="run">Chalu: '+tm(r.st)+' se &middot; '+hm(Date.now()-r.st,1)+'</span> &middot; Start: '+esc(r.by||"-");
- else if(l)t='Last: '+dt(l.st)+', '+tm(l.st)+' se '+tm(l.en)+' tak &middot; '+hm(l.en-l.st)+' &middot; Start: '+esc(l.by||"-")+', Close: '+esc(l.enBy||"-");
- else t='Training Not Started';
+ if(r&&r.c===c)t='<span class="run">Running since '+tm(r.st)+' &middot; '+hm(Date.now()-r.st,1)+'</span> &middot; Start: '+esc(r.by||"-");
+ else if(l)t='Last: '+dt(l.st)+', '+tm(l.st)+' to '+tm(l.en)+' &middot; '+hm(l.en-l.st)+' &middot; Start: '+esc(l.by||"-")+', Close: '+esc(l.enBy||"-");
+ else t='Training not started';
  return '<div class="mute">'+t+'</div><div class="bar"><i class="'+(pct>=100?"full":"")+'" style="width:'+pct+'%"></i></div>'+
-  '<div class="row"><span><span class="big">'+hm(d)+'</span> <span class="mute">hua / 40h</span></span><span class="mute">Baaki: '+(d>=REQ?'0h 0m':hm(REQ-d))+'</span></div>';
+  '<div class="row"><span><span class="big">'+hm(d)+'</span> <span class="mute">done / 40h</span></span><span class="mute">Remaining: '+(d>=REQ?'0h 0m':hm(REQ-d))+'</span></div>';
 }
 function laneHtml(s,c){
  const r=run(s.id);let btn;
@@ -197,24 +199,24 @@ function laneHtml(s,c){
 function formHtml(s){
  const isNew=s.id==="new",has=!isNew&&sess.some(x=>x.sid===s.id);
  return '<div class="form" style="margin-top:12px">'+
-  '<input data-f="name" placeholder="Student Name" value="'+esc(s.name||"")+'">'+
-  '<input data-f="father" placeholder="Father Name" value="'+esc(s.father||"")+'">'+
+  '<input data-f="name" placeholder="Student name" value="'+esc(s.name||"")+'">'+
+  '<input data-f="father" placeholder="Father name" value="'+esc(s.father||"")+'">'+
   '<input data-f="phone" inputmode="tel" placeholder="Mobile number" value="'+esc(s.phone||"")+'">'+
-  '<select data-f="cls"'+(has?' disabled':'')+'><option value="">Select Vehicle</option>'+
+  '<select data-f="cls"'+(has?' disabled':'')+'><option value="">Select vehicle</option>'+
   [["2W","Two wheeler"],["4W","Four wheeler"],["BOTH","Both (2W + 4W)"],["TRK","Truck"]].map(o=>'<option value="'+o[0]+'"'+(s.cls===o[0]&&!isNew?' selected':'')+'>'+o[1]+'</option>').join("")+'</select></div>'+
-  '<div class="foot"><button class="pri" data-save="'+s.id+'">Save</button><button data-cancel="1">Cancle</button>'+
-  (isNew?'':'<button data-del="'+s.id+'">Delete</button>')+'<span class="mute bad" data-err></span></div>';
+  '<div class="foot"><button class="pri" data-save="'+s.id+'">Save</button><button data-cancel="1">Cancel</button>'+
+  (isNew?'':'<button data-del="'+s.id+'">Delete student</button>')+'<span class="mute bad" data-err></span></div>';
 }
 function card(s,n){
  const isA=role==="admin";
  let h='<article class="stu'+(found===s.id?' hl':'')+'" data-card="'+s.id+'"><div class="row"><div><span class="mute">'+n+'.</span> <span class="name">'+esc(s.name)+'</span> <span class="mute">s/o '+esc(s.father||"-")+'</span></div>'+
-  '<div class="mute">'+esc(s.phone||"")+' &middot; Enroll <button class="link" data-open="'+s.id+'">'+esc(s.enroll)+'</button></div></div>';
+  '<div class="mute">'+esc(s.phone||"")+' &middot; Enroll no. <button class="link" data-open="'+s.id+'">'+esc(s.enroll)+'</button></div></div>';
  if(isA&&editId===s.id)return h+formHtml(s)+'</article>';
  const ls=lanes(s),all=ls.every(c=>done(s.id,c)>=REQ);let f="";
- if(s.form===2)f='<span class="chip good">Complete File</span>';
- else if(s.form===1)f='<span class="chip mid">Waiting for Apply</span>'+(isA?' <button data-apply="'+s.id+'">Waiting For Apply</button>':'');
- else{if(all)f='<span class="chip good">40 ghante poore</span> ';if(isA)f+='<button data-form="'+s.id+'">Complete</button>'}
- if(isA)f+=' <button data-edit="'+s.id+'">Edit</button> <button data-del="'+s.id+'">Delete</button>';
+ if(s.form===2)f='<button class="done" disabled>Done</button>';
+ else if(s.form===1||all)f=(s.form===1?'<span class="chip mid">Training complete</span> ':'<span class="chip good">40 hours done</span> ')+'<button class="stop" data-apply="'+s.id+'">Apply</button>';
+ else f='<button data-form="'+s.id+'">Complete</button>';
+ if(isA)f+=' <button data-edit="'+s.id+'">Edit details</button> <button data-del="'+s.id+'">Delete student</button>';
  return h+ls.map(c=>laneHtml(s,c)).join("")+(f?'<div class="foot">'+f+'</div>':'')+'</article>';
 }
 function typing(){const a=document.activeElement;return a&&a.closest&&a.closest("#list")&&/INPUT|SELECT/.test(a.tagName)}
@@ -231,18 +233,19 @@ function render(){
  if(!inApp)return;
  const isA=role==="admin";
  $("roleBar").innerHTML='<span class="chip '+(isA?'good':'')+'">'+(isA?'Admin':'Staff')+'</span><span class="mute">'+esc(who)+' ('+esc(accId(user.email))+')</span>'+
-  (isA?'<button data-pw="1">Password badlo</button>':'')+'<button data-logout="1">Logout</button>';
+  (isA?'<button data-pw="1">Change password</button>':'')+'<button data-logout="1">Logout</button>';
  $("enrollPanel").style.display=isA?"block":"none";
  const keys={};students.forEach(s=>{keys[mk(s)]=1});
  const ks=Object.keys(keys).sort().reverse();
  if(mon!=="all"&&!keys[mon])mon="all";
- $("bar").innerHTML='<div><span class="mute">Month:</span> <select id="mon" aria-label="Month"><option value="all">all mahine</option>'+
+ $("bar").innerHTML='<div><span class="mute">Month:</span> <select id="mon" aria-label="Month"><option value="all">All months</option>'+
   ks.map(k=>'<option value="'+k+'"'+(mon===k?' selected':'')+'>'+ml(k)+'</option>').join("")+'</select></div>'+
   (isA?'<div class="foot" style="margin:0"><button data-csv="students">Students CSV</button><button data-csv="sessions">Sessions CSV</button></div>':'');
  let h="";
+ if(undoInfo&&Date.now()-undoInfo.t<120000)h+='<div class="panel row"><span><b>'+undoInfo.what+' done: '+esc(undoInfo.name)+'</b> <span class="mute">Clicked by mistake? Press Ctrl+Z or tap Undo.</span></span><button data-undo="1">Undo</button></div>';
  if(isA){
   if(info)h+='<div class="panel good"><b>'+esc(info)+'</b></div>';
-  if(nw!==null)h+='<article class="stu"><div class="row"><span class="name">Naya: Enroll '+esc(nw)+'</span><span class="chip mid">Fill Details</span></div>'+formHtml({id:"new",enroll:nw,name:"",father:"",phone:"",cls:""})+'</article>';
+  if(nw!==null)h+='<article class="stu"><div class="row"><span class="name">New: Enroll no. '+esc(nw)+'</span><span class="chip mid">Fill details</span></div>'+formHtml({id:"new",enroll:nw,name:"",father:"",phone:"",cls:""})+'</article>';
  }
  let shown=0;
  ks.forEach(k=>{
@@ -251,7 +254,7 @@ function render(){
   h+='<h2>'+ml(k)+' <span class="mute">('+g.length+' students)</span></h2>';
   g.forEach(s=>{h+=card(s,sr(s.id));shown++});
  });
- if(!shown)h+='<div class="empty">'+(isA?'No Record Found')+'</div>';
+ if(!shown)h+='<div class="empty">'+(isA?'No students yet. Enter an enrollment no. above to start.':'The admin has not saved any students yet.')+'</div>';
  $("list").innerHTML=h;
 }
 
@@ -260,12 +263,12 @@ function closeDlg(){const d=$("dlg");if(d.open)d.close()}
 function detail(id){
  const s=get(id);if(!s)return;
  const isA=role==="admin",ss=sess.filter(x=>x.sid===id).sort((a,b)=>b.st-a.st);
- let h='<div class="row"><div class="name">'+esc(s.name)+'</div><button data-close="1">Band karo</button></div>'+
-  '<p class="mute">Enroll '+esc(s.enroll)+' &middot; s/o '+esc(s.father||"-")+' &middot; '+esc(s.phone||"-")+' &middot; '+(s.cls==="BOTH"?"Two + Four wheeler":CN[s.cls])+'</p>';
- lanes(s).forEach(c=>{const d=done(id,c);h+='<p><b>'+CN[c]+':</b> '+hm(d)+' ho chuka, '+(d>=REQ?'poora':hm(REQ-d)+' baaki')+'</p>'});
- h+='<div class="wrap"><table><thead><tr><th>Date</th><th>Vehicle</th><th>Start</th><th>Close</th><th>Total</th><th>Start kisne</th><th>Close kisne</th>'+(isA?'<th></th>':'')+'</tr></thead><tbody>';
- ss.forEach(x=>{h+='<tr><td>'+dt(x.st)+'</td><td>'+x.c+'</td><td>'+tm(x.st)+'</td><td>'+(x.en?tm(x.en):'chalu')+'</td><td>'+hm((x.en||Date.now())-x.st)+'</td><td class="mute">'+esc(x.by||"-")+'</td><td class="mute">'+esc(x.en?(x.enBy||"-"):"")+'</td>'+(isA?'<td><button data-delsess="'+x.id+'" aria-label="Session hatao">&times;</button></td>':'')+'</tr>'});
- if(!ss.length)h+='<tr><td colspan="8" class="mute">Abhi koi session nahi.</td></tr>';
+ let h='<div class="row"><div class="name">'+esc(s.name)+'</div><button data-close="1">Back</button></div>'+
+  '<p class="mute">Enroll no. '+esc(s.enroll)+' &middot; s/o '+esc(s.father||"-")+' &middot; '+esc(s.phone||"-")+' &middot; '+(s.cls==="BOTH"?"Two + Four wheeler":CN[s.cls])+'</p>';
+ lanes(s).forEach(c=>{const d=done(id,c);h+='<p><b>'+CN[c]+':</b> '+hm(d)+' done, '+(d>=REQ?'complete':hm(REQ-d)+' remaining')+'</p>'});
+ h+='<div class="wrap"><table><thead><tr><th>Date</th><th>Vehicle</th><th>Start</th><th>Close</th><th>Total</th><th>Started by</th><th>Closed by</th>'+(isA?'<th></th>':'')+'</tr></thead><tbody>';
+ ss.forEach(x=>{h+='<tr><td>'+dt(x.st)+'</td><td>'+x.c+'</td><td>'+tm(x.st)+'</td><td>'+(x.en?tm(x.en):'running')+'</td><td>'+hm((x.en||Date.now())-x.st)+'</td><td class="mute">'+esc(x.by||"-")+'</td><td class="mute">'+esc(x.en?(x.enBy||"-"):"")+'</td>'+(isA?'<td><button data-delsess="'+x.id+'" aria-label="Delete session">&times;</button></td>':'')+'</tr>'});
+ if(!ss.length)h+='<tr><td colspan="8" class="mute">No sessions yet.</td></tr>';
  openDlg(h+'</tbody></table></div>');
 }
 function reset(){found=null;nw=null;editId=null;$("fEnroll").value="";$("msg").textContent=""}
@@ -275,12 +278,12 @@ function download(name,text){const a=document.createElement("a");a.href=URL.crea
 function exportCsv(kind){
  const day=new Date().toISOString().slice(0,10);
  if(kind==="students"){
-  const rows=[["Sr","Enroll","Naam","Father","Mobile","Vehicle","2W hours","4W hours","Truck hours","Form"]];
-  students.forEach(s=>rows.push([sr(s.id),s.enroll,s.name,s.father,s.phone,s.cls,hm(done(s.id,"2W")),hm(done(s.id,"4W")),hm(done(s.id,"TRK")),s.form===2?"Complete File":s.form===1?"Waiting for Apply":""]));
+  const rows=[["Sr","Enroll","Name","Father","Mobile","Vehicle","2W hours","4W hours","Truck hours","Form"]];
+  students.forEach(s=>rows.push([sr(s.id),s.enroll,s.name,s.father,s.phone,s.cls,hm(done(s.id,"2W")),hm(done(s.id,"4W")),hm(done(s.id,"TRK")),s.form===2?"Apply Done":s.form===1?"Training Complete":""]));
   download("students-"+day+".csv",csv(rows));
  }else{
-  const rows=[["Enroll","Naam","Vehicle","Date","Start","Close","Minutes","Start kisne","Close kisne","Start ID","Close ID"]];
-  sess.slice().sort((a,b)=>a.st-b.st).forEach(x=>{const s=get(x.sid)||{enroll:"?",name:"(hata diya)"};
+  const rows=[["Enroll","Name","Vehicle","Date","Start","Close","Minutes","Started by","Closed by","Start ID","Close ID"]];
+  sess.slice().sort((a,b)=>a.st-b.st).forEach(x=>{const s=get(x.sid)||{enroll:"?",name:"(deleted)"};
    rows.push([s.enroll,s.name,x.c,new Date(x.st).toLocaleDateString("en-IN"),tm(x.st),x.en?tm(x.en):"",x.en?Math.round((x.en-x.st)/60000):"",x.by,x.enBy,accId(x.byAcc),accId(x.enAcc)])});
   download("sessions-"+day+".csv",csv(rows));
  }
@@ -288,32 +291,45 @@ function exportCsv(kind){
 
 async function doLogin(){
  const id=cleanId($("lid").value),pw=$("lpass").value,m=$("lmsg");
- if(!id||!pw){m.textContent=" ";return}
+ if(!id||!pw){m.textContent="Enter both ID and password.";return}
  m.textContent="";
  try{await signInWithEmailAndPassword(auth,toEmail(id),pw);$("lpass").value=""}
- catch(e){const c=e.code||"";m.textContent=c.includes("too-many")?"try after sametime.":c.includes("network")?"Check your Internet connection.":"Wrong User ID or Password"}
+ catch(e){const c=e.code||"";m.textContent=c.includes("too-many")?"Too many attempts. Please try again later.":c.includes("network")?"Check your internet connection.":"Wrong ID or password."}
 }
 async function doReset(){
  const id=cleanId($("lid").value),m=$("lmsg");
- if(!id){m.textContent="Enter your User ID";return}
+ if(!id){m.textContent="Enter your ID above first, then tap this.";return}
  try{await sendPasswordResetEmail(auth,toEmail(id))}catch(e){}
- m.textContent=" "
+ m.textContent="A reset link has been sent to the head email. The admin will open it, set a new password and tell you."
 }
 async function setWho(){
  const v=$("nname").value.trim().slice(0,30),m=$("nmsg");
- if(v.length<2){m.textContent="Enter your Name";return}
+ if(v.length<2){m.textContent="Enter your name (at least 2 characters).";return}
  try{await updateDoc(doc(db,"users",user.uid),{name:v});who=v;m.textContent="";render()}
  catch(e){m.textContent=errMsg(e)}
 }
 async function savePw(){
  const p=$("npw").value,m=$("pwMsg");
- if(p.length<6){m.className="mute bad";m.textContent="Enter Your Password.";return}
- try{await updatePassword(auth.currentUser,p);m.className="mute good";m.textContent="Password change Successfully."}
- catch(e){m.className="mute bad";m.textContent=(e.code||"").includes("requires-recent-login")?"first logout then login and change your password.":errMsg(e)}
+ if(p.length<6){m.className="mute bad";m.textContent="Password must be at least 6 characters.";return}
+ try{await updatePassword(auth.currentUser,p);m.className="mute good";m.textContent="Password changed."}
+ catch(e){m.className="mute bad";m.textContent=(e.code||"").includes("requires-recent-login")?"Please log out, log in again, then change your password.":errMsg(e)}
+}
+function setForm(id,val){
+ const s=get(id);if(!s||s.form===val)return;
+ undoInfo={id,prev:s.form,name:s.name,what:val===2?"Apply":"Complete",t:Date.now()};
+ act(()=>updateDoc(doc(db,"students",id),{form:val}));
+ render();
+}
+function doUndo(){
+ const u=undoInfo;
+ if(!u||Date.now()-u.t>=120000)return;
+ undoInfo=null;
+ act(()=>updateDoc(doc(db,"students",u.id),{form:u.prev}));
+ render();
 }
 function lookup(){
  const en=$("fEnroll").value.trim(),m=$("msg");
- if(!en){m.textContent="Enter enrollment No..";return}
+ if(!en){m.textContent="Enter an enrollment no. first.";return}
  m.textContent="";info="";editId=null;
  const s=get(toId(en));
  if(s){found=s.id;nw=null}else{found=null;nw=en}
@@ -324,6 +340,11 @@ function lookup(){
 document.addEventListener("change",e=>{if(e.target.id==="mon"){mon=e.target.value;render()}});
 document.addEventListener("focusout",()=>{if(dirty)setTimeout(()=>{if(!typing())render()},250)});
 document.addEventListener("keydown",e=>{
+ if((e.ctrlKey||e.metaKey)&&!e.shiftKey&&e.key.toLowerCase()==="z"){
+  const a=document.activeElement;
+  if(!(a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName))&&undoInfo&&role&&who){e.preventDefault();doUndo()}
+  return;
+ }
  if(e.key!=="Enter")return;
  const id=e.target.id;
  if(id==="fEnroll")lookup();
@@ -348,23 +369,24 @@ document.addEventListener("click",e=>{
   act(()=>updateDoc(doc(db,"sessions",r.id),{en:serverTimestamp(),enBy:who,enAcc:user.email}));return}
  if((n=t.closest("[data-open]"))){detail(n.dataset.open);return}
  if(t.closest("[data-close]")){closeDlg();return}
+ if((n=t.closest("[data-form]"))){setForm(n.dataset.form,1);return}
+ if((n=t.closest("[data-apply]"))){setForm(n.dataset.apply,2);return}
+ if(t.closest("[data-undo]")){doUndo();return}
  if(role!=="admin")return;
- if(t.closest("[data-pw]")){openDlg('<div class="name">Change login Password</div><div class="form" style="margin-top:10px"><input id="npw" type="password" placeholder="Naya password (kam se kam 6 akshar)" aria-label="Naya password" autocomplete="new-password"></div><div class="foot"><button class="pri" data-savepw="1">Save karo</button><button data-close="1">Band karo</button></div><p class="mute" id="pwMsg"></p>');return}
+ if(t.closest("[data-pw]")){openDlg('<div class="name">Change password</div><div class="form" style="margin-top:10px"><input id="npw" type="password" placeholder="New password (min 6 characters)" aria-label="New password" autocomplete="new-password"></div><div class="foot"><button class="pri" data-savepw="1">Save</button><button data-close="1">Cancel</button></div><p class="mute" id="pwMsg"></p>');return}
  if(t.closest("[data-savepw]")){savePw();return}
  if((n=t.closest("[data-csv]"))){exportCsv(n.dataset.csv);return}
  if((n=t.closest("[data-delsess]"))){act(()=>deleteDoc(doc(db,"sessions",n.dataset.delsess)));return}
- if((n=t.closest("[data-form]"))){act(()=>updateDoc(doc(db,"students",n.dataset.form),{form:1}));return}
- if((n=t.closest("[data-apply]"))){act(()=>updateDoc(doc(db,"students",n.dataset.apply),{form:2}));return}
  if((n=t.closest("[data-edit]"))){editId=n.dataset.edit;render();return}
  if(t.closest("[data-cancel]")){reset();render();return}
  if((n=t.closest("[data-save]"))){
   const sid=n.dataset.save,box=n.closest("article"),f={},s=sid==="new"?null:get(sid);
   box.querySelectorAll("[data-f]").forEach(i=>{f[i.dataset.f]=i.value.trim()});
-  if(!f.name||!(f.cls||(s&&s.cls))){box.querySelector("[data-err]").textContent="Naam aur vehicle zaroori hain.";return}
+  if(!f.name||!(f.cls||(s&&s.cls))){box.querySelector("[data-err]").textContent="Name and vehicle are required.";return}
   act(async()=>{
    if(!s){
     const id=toId(nw);
-    if(get(id)){box.querySelector("[data-err]").textContent="Ye enroll no. pehle se hai.";return}
+    if(get(id)){box.querySelector("[data-err]").textContent="This enrollment no. already exists.";return}
     await setDoc(doc(db,"students",id),{enroll:nw,name:f.name,father:f.father,phone:f.phone,cls:f.cls,form:0,created:serverTimestamp()});
     info="Saved: "+f.name;reset();
    }else{
@@ -375,14 +397,15 @@ document.addEventListener("click",e=>{
   });return}
  if((n=t.closest("[data-del]"))){
   const id=n.dataset.del,s=get(id);
-  if(!s||!window.confirm(s.name+" aur uske saare sessions hamesha ke liye hata dein?"))return;
+  if(!s||!window.confirm(s.name+" and all their sessions will be deleted permanently. Continue?"))return;
   act(async()=>{
    const b=writeBatch(db);sess.filter(x=>x.sid===id).forEach(x=>b.delete(doc(db,"sessions",x.id)));b.delete(doc(db,"students",id));
-   await b.commit();reset();info=" ";render();
+   await b.commit();reset();info="Student deleted.";render();
   });
  }
 });
 setInterval(()=>{
+ if(undoInfo&&Date.now()-undoInfo.t>=120000){undoInfo=null;render()}
  if(!role||!sess.some(x=>!x.en))return;
  document.querySelectorAll("[data-lane]").forEach(el=>{const v=el.dataset.lane.split("|"),s=get(v[0]);if(s)el.innerHTML=laneDyn(s,v[1])});
 },1000);
