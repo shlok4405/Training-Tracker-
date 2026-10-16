@@ -93,7 +93,7 @@ td{padding:6px 4px;border-bottom:1px solid var(--line)}
   </div>
   <section class="panel" id="enrollPanel">
    <div class="form">
-    <input id="fEnroll" placeholder="Enroll no. likho" aria-label="Enroll no.">
+    <input id="fEnroll" placeholder="Enter enrollment No." aria-label="Enroll no.">
     <button class="pri" id="add">Enter</button>
     <span class="mute bad" id="msg"></span>
    </div>
@@ -183,7 +183,7 @@ function laneDyn(s,c){
  const d=done(s.id,c),r=run(s.id),l=last(s.id,c),pct=s.form>0?100:Math.min(100,d/REQ*100);let t;
  if(r&&r.c===c)t='<span class="run">Chalu: '+tm(r.st)+' se &middot; '+hm(Date.now()-r.st,1)+'</span> &middot; Start: '+esc(r.by||"-");
  else if(l)t='Last: '+dt(l.st)+', '+tm(l.st)+' se '+tm(l.en)+' tak &middot; '+hm(l.en-l.st)+' &middot; Start: '+esc(l.by||"-")+', Close: '+esc(l.enBy||"-");
- else t='Abhi training shuru nahi hui';
+ else t='Training Not Started';
  return '<div class="mute">'+t+'</div><div class="bar"><i class="'+(pct>=100?"full":"")+'" style="width:'+pct+'%"></i></div>'+
   '<div class="row"><span><span class="big">'+hm(d)+'</span> <span class="mute">hua / 40h</span></span><span class="mute">Baaki: '+(d>=REQ?'0h 0m':hm(REQ-d))+'</span></div>';
 }
@@ -197,13 +197,13 @@ function laneHtml(s,c){
 function formHtml(s){
  const isNew=s.id==="new",has=!isNew&&sess.some(x=>x.sid===s.id);
  return '<div class="form" style="margin-top:12px">'+
-  '<input data-f="name" placeholder="Student ka naam" value="'+esc(s.name||"")+'">'+
-  '<input data-f="father" placeholder="Father ka naam" value="'+esc(s.father||"")+'">'+
+  '<input data-f="name" placeholder="Student Name" value="'+esc(s.name||"")+'">'+
+  '<input data-f="father" placeholder="Father Name" value="'+esc(s.father||"")+'">'+
   '<input data-f="phone" inputmode="tel" placeholder="Mobile number" value="'+esc(s.phone||"")+'">'+
-  '<select data-f="cls"'+(has?' disabled':'')+'><option value="">Vehicle chuno</option>'+
+  '<select data-f="cls"'+(has?' disabled':'')+'><option value="">Select Vehicle</option>'+
   [["2W","Two wheeler"],["4W","Four wheeler"],["BOTH","Both (2W + 4W)"],["TRK","Truck"]].map(o=>'<option value="'+o[0]+'"'+(s.cls===o[0]&&!isNew?' selected':'')+'>'+o[1]+'</option>').join("")+'</select></div>'+
-  '<div class="foot"><button class="pri" data-save="'+s.id+'">Save karo</button><button data-cancel="1">Rehne do</button>'+
-  (isNew?'':'<button data-del="'+s.id+'">Student hatao</button>')+'<span class="mute bad" data-err></span></div>';
+  '<div class="foot"><button class="pri" data-save="'+s.id+'">Save</button><button data-cancel="1">Cancle</button>'+
+  (isNew?'':'<button data-del="'+s.id+'">Delete</button>')+'<span class="mute bad" data-err></span></div>';
 }
 function card(s,n){
  const isA=role==="admin";
@@ -213,8 +213,8 @@ function card(s,n){
  const ls=lanes(s),all=ls.every(c=>done(s.id,c)>=REQ);let f="";
  if(s.form===2)f='<span class="chip good">Complete File</span>';
  else if(s.form===1)f='<span class="chip mid">Waiting for Apply</span>'+(isA?' <button data-apply="'+s.id+'">Apply ho gaya</button>':'');
- else{if(all)f='<span class="chip good">40 ghante poore</span> ';if(isA)f+='<button data-form="'+s.id+'">Form nikalo</button>'}
- if(isA)f+=' <button data-edit="'+s.id+'">Details badlo</button> <button data-del="'+s.id+'">Student hatao</button>';
+ else{if(all)f='<span class="chip good">40 ghante poore</span> ';if(isA)f+='<button data-form="'+s.id+'">Complete</button>'}
+ if(isA)f+=' <button data-edit="'+s.id+'">Edit</button> <button data-del="'+s.id+'">Delete</button>';
  return h+ls.map(c=>laneHtml(s,c)).join("")+(f?'<div class="foot">'+f+'</div>':'')+'</article>';
 }
 function typing(){const a=document.activeElement;return a&&a.closest&&a.closest("#list")&&/INPUT|SELECT/.test(a.tagName)}
@@ -236,13 +236,13 @@ function render(){
  const keys={};students.forEach(s=>{keys[mk(s)]=1});
  const ks=Object.keys(keys).sort().reverse();
  if(mon!=="all"&&!keys[mon])mon="all";
- $("bar").innerHTML='<div><span class="mute">Mahina:</span> <select id="mon" aria-label="Mahina"><option value="all">Sab mahine</option>'+
+ $("bar").innerHTML='<div><span class="mute">Month:</span> <select id="mon" aria-label="Month"><option value="all">all mahine</option>'+
   ks.map(k=>'<option value="'+k+'"'+(mon===k?' selected':'')+'>'+ml(k)+'</option>').join("")+'</select></div>'+
   (isA?'<div class="foot" style="margin:0"><button data-csv="students">Students CSV</button><button data-csv="sessions">Sessions CSV</button></div>':'');
  let h="";
  if(isA){
   if(info)h+='<div class="panel good"><b>'+esc(info)+'</b></div>';
-  if(nw!==null)h+='<article class="stu"><div class="row"><span class="name">Naya: Enroll '+esc(nw)+'</span><span class="chip mid">Details bharo</span></div>'+formHtml({id:"new",enroll:nw,name:"",father:"",phone:"",cls:""})+'</article>';
+  if(nw!==null)h+='<article class="stu"><div class="row"><span class="name">Naya: Enroll '+esc(nw)+'</span><span class="chip mid">Fill Details</span></div>'+formHtml({id:"new",enroll:nw,name:"",father:"",phone:"",cls:""})+'</article>';
  }
  let shown=0;
  ks.forEach(k=>{
@@ -251,7 +251,7 @@ function render(){
   h+='<h2>'+ml(k)+' <span class="mute">('+g.length+' students)</span></h2>';
   g.forEach(s=>{h+=card(s,sr(s.id));shown++});
  });
- if(!shown)h+='<div class="empty">'+(isA?'Abhi koi student nahi hai. Upar enroll no. likhke shuru karo.':'Admin ne abhi koi student save nahi kiya.')+'</div>';
+ if(!shown)h+='<div class="empty">'+(isA?'No Record Found')+'</div>';
  $("list").innerHTML=h;
 }
 
@@ -313,7 +313,7 @@ async function savePw(){
 }
 function lookup(){
  const en=$("fEnroll").value.trim(),m=$("msg");
- if(!en){m.textContent="Pehle enroll no. likho.";return}
+ if(!en){m.textContent="Enter enrollment No..";return}
  m.textContent="";info="";editId=null;
  const s=get(toId(en));
  if(s){found=s.id;nw=null}else{found=null;nw=en}
@@ -349,7 +349,7 @@ document.addEventListener("click",e=>{
  if((n=t.closest("[data-open]"))){detail(n.dataset.open);return}
  if(t.closest("[data-close]")){closeDlg();return}
  if(role!=="admin")return;
- if(t.closest("[data-pw]")){openDlg('<div class="name">Password badlo</div><div class="form" style="margin-top:10px"><input id="npw" type="password" placeholder="Naya password (kam se kam 6 akshar)" aria-label="Naya password" autocomplete="new-password"></div><div class="foot"><button class="pri" data-savepw="1">Save karo</button><button data-close="1">Band karo</button></div><p class="mute" id="pwMsg"></p>');return}
+ if(t.closest("[data-pw]")){openDlg('<div class="name">Change login Password</div><div class="form" style="margin-top:10px"><input id="npw" type="password" placeholder="Naya password (kam se kam 6 akshar)" aria-label="Naya password" autocomplete="new-password"></div><div class="foot"><button class="pri" data-savepw="1">Save karo</button><button data-close="1">Band karo</button></div><p class="mute" id="pwMsg"></p>');return}
  if(t.closest("[data-savepw]")){savePw();return}
  if((n=t.closest("[data-csv]"))){exportCsv(n.dataset.csv);return}
  if((n=t.closest("[data-delsess]"))){act(()=>deleteDoc(doc(db,"sessions",n.dataset.delsess)));return}
@@ -366,7 +366,7 @@ document.addEventListener("click",e=>{
     const id=toId(nw);
     if(get(id)){box.querySelector("[data-err]").textContent="Ye enroll no. pehle se hai.";return}
     await setDoc(doc(db,"students",id),{enroll:nw,name:f.name,father:f.father,phone:f.phone,cls:f.cls,form:0,created:serverTimestamp()});
-    info="Save ho gaya: "+f.name;reset();
+    info="Saved: "+f.name;reset();
    }else{
     const up={name:f.name,father:f.father,phone:f.phone};if(f.cls)up.cls=f.cls;
     await updateDoc(doc(db,"students",sid),up);editId=null;
