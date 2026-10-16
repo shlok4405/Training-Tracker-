@@ -2,37 +2,31 @@
 <html lang="hi">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
 <title>Training Tracker</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap">
 <style>
-:root{--bg:#F2F5F6;--card:#fff;--ink:#14323A;--mute:#5E747A;--line:#D9E2E5;--good:#2E7D5B;--mid:#B7791F;--run:#1F6F8B;--bad:#B3402F;
-box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0F1D21;--card:#16282D;--ink:#E4EEF0;--mute:#93AAB0;--line:#27403F;--good:#5DBE93;--mid:#E0AE4D;--run:#6CC0DA;--bad:#E27C6B}}
-:root[data-theme="dark"]{--bg:#0F1D21;--card:#16282D;--ink:#E4EEF0;--mute:#93AAB0;--line:#27403F;--good:#5DBE93;--mid:#E0AE4D;--run:#6CC0DA;--bad:#E27C6B}
-html{scroll-padding-top:env(safe-area-inset-top,0px)}
+:root{--bg:#F2F5F6;--card:#fff;--ink:#14323A;--mute:#5E747A;--line:#D9E2E5;--good:#2E7D5B;--mid:#B7791F;--run:#1F6F8B;--bad:#B3402F;--on:#fff}
+@media (prefers-color-scheme:dark){:root{--bg:#0F1D21;--card:#16282D;--ink:#E4EEF0;--mute:#93AAB0;--line:#27403F;--good:#5DBE93;--mid:#E0AE4D;--run:#6CC0DA;--bad:#E27C6B;--on:#0F1D21}}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:400 15px/1.5 "Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",sans-serif}
 main{max-width:980px;margin:0 auto;padding:20px 16px 48px}
 h1{font-size:25px;font-weight:800;margin:0}
-h2.mh{font-size:15px;font-weight:800;margin:18px 0 0;color:var(--run)}
-.sub{color:var(--mute);margin:2px 0 0}
-.top{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-start;margin-bottom:16px}
-.role{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+h2{font-size:15px;font-weight:800;margin:18px 0 0;color:var(--run)}
 .panel,.stu{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
 .stu.hl{outline:2px solid var(--run);outline-offset:2px}
+.row{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center}
 .form{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .form input,.form select{flex:1 1 150px;min-width:0}
 input,select,button{font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:7px;padding:8px 10px}
 button{cursor:pointer;font-weight:600}
-button.pri{background:var(--run);border-color:var(--run);color:#fff}
-button.stop{background:var(--bad);border-color:var(--bad);color:#fff}
-button.link{background:none;border:0;padding:0;color:var(--run);text-decoration:underline;font-weight:600}
+button.pri{background:var(--run);border-color:var(--run);color:var(--on)}
+button.stop{background:var(--bad);border-color:var(--bad);color:var(--on)}
+button.link{background:none;border:0;padding:0;color:var(--run);text-decoration:underline}
 button:disabled{opacity:.45;cursor:not-allowed}
-button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--run);outline-offset:2px}
+:focus-visible{outline:2px solid var(--run);outline-offset:2px}
 .list{display:grid;gap:12px;margin-top:12px}
-.head{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:baseline}
 .name{font-weight:800;font-size:16px}
 .mute{color:var(--mute);font-size:13px}
 .lane{display:flex;gap:12px;align-items:center;flex-wrap:wrap;border-top:1px solid var(--line);margin-top:10px;padding-top:10px}
@@ -41,63 +35,61 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .bar{height:10px;background:var(--line);border-radius:6px;overflow:hidden;margin:6px 0 4px}
 .bar i{display:block;height:100%;background:var(--run);border-radius:6px;transition:width .5s}
 .bar i.full{background:var(--good)}
-.hrs{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
 .big{font-weight:800}
-.chip{font-size:12.5px;font-weight:700;padding:3px 10px;border-radius:20px;border:1px solid currentColor;display:inline-block}
+.chip{font-size:12.5px;font-weight:700;padding:3px 10px;border-radius:20px;border:1px solid currentColor}
 .good{color:var(--good)}.mid{color:var(--mid)}.run{color:var(--run)}.bad{color:var(--bad)}
 .foot{display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap}
 .empty{color:var(--mute);text-align:center;padding:30px 0}
-.bar2{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center;margin-top:16px}
 .center{min-height:80vh;display:grid;place-items:center}
-.lcard{width:100%;max-width:380px}
-.lcard input{width:100%;margin-bottom:10px}
-#toast{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));max-width:520px;margin:0 auto;background:var(--bad);color:#fff;padding:10px 14px;border-radius:8px;font-weight:600;display:none;z-index:20}
-dialog{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:12px;max-width:600px;width:calc(100% - 24px);padding:18px}
+.card{width:100%;max-width:380px}
+.card input{width:100%;margin-bottom:10px}
+#toast{position:fixed;left:12px;right:12px;bottom:12px;max-width:520px;margin:0 auto;background:var(--bad);color:var(--on);padding:10px 14px;border-radius:8px;font-weight:600;display:none;z-index:20}
+dialog{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:12px;max-width:640px;width:calc(100% - 24px);padding:18px}
 dialog::backdrop{background:rgba(0,0,0,.45)}
 table{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:8px}
 th{text-align:left;color:var(--mute);font-weight:600;padding:5px 4px;border-bottom:1px solid var(--line)}
 td{padding:6px 4px;border-bottom:1px solid var(--line)}
 .wrap{overflow-x:auto;max-height:280px;overflow-y:auto}
-.note{color:var(--mute);font-size:12.5px;margin-top:18px}
 </style>
 </head>
 <body>
 <main>
  <section class="center" id="loading"><p class="mute">Load ho raha hai...</p></section>
+
  <section class="center" id="loginView" style="display:none">
-  <div class="panel lcard">
+  <div class="panel card">
    <h1>Training tracker</h1>
-   <p class="sub">Apni ID (naam) aur password likho.</p>
-   <div style="height:12px"></div>
-   <input id="lemail" type="text" placeholder="ID (jaise admin ya ravi)" aria-label="ID" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false">
+   <p class="mute">ID aur password likho.</p>
+   <input id="lid" type="text" placeholder="ID (jaise admin ya ravi)" aria-label="ID" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false">
    <input id="lpass" type="password" placeholder="Password" aria-label="Password" autocomplete="current-password">
    <button class="pri" id="lgo" style="width:100%">Login</button>
    <p class="mute bad" id="lmsg"></p>
    <button class="link" id="lreset">Password bhool gaye?</button>
   </div>
  </section>
- <section class="center" id="noRole" style="display:none">
-  <div class="panel lcard">
-   <h1>Role nahi mila</h1>
-   <p class="sub">Is account ko abhi admin ya staff ka role nahi diya gaya. Admin se kaho ki setup poora kare.</p>
-   <div style="height:12px"></div>
-   <button data-logout="1">Logout</button>
-  </div>
- </section>
+
  <section class="center" id="nameView" style="display:none">
-  <div class="panel lcard">
+  <div class="panel card">
    <h1>Aapka naam?</h1>
-   <p class="sub">Jo naam likhoge wahi Start aur Close ke saath dikhega.</p>
-   <div style="height:12px"></div>
+   <p class="mute">Ye sirf ek baar puchha jayega. Yahi naam Start aur Close ke saath dikhega.</p>
    <input id="nname" type="text" maxlength="30" placeholder="Apna naam" aria-label="Apna naam" autocomplete="off">
    <button class="pri" id="ngo" style="width:100%">Aage badho</button>
    <p class="mute bad" id="nmsg"></p>
   </div>
  </section>
+
+ <section class="center" id="noRole" style="display:none">
+  <div class="panel card">
+   <h1>Role nahi mila</h1>
+   <p class="mute">Is ID ko abhi admin ya staff ka role nahi diya gaya. Admin se kaho.</p>
+   <button data-logout="1">Logout</button>
+  </div>
+ </section>
+
  <div id="app" style="display:none">
-  <div class="top">
-   <div><h1>Training tracker</h1><p class="sub" id="sub"></p></div>
-   <div class="role" id="roleBar"></div>
+  <div class="row" style="margin-bottom:16px">
+   <h1>Training tracker</h1>
+   <div class="row" id="roleBar"></div>
   </div>
   <section class="panel" id="enrollPanel">
    <div class="form">
@@ -106,16 +98,16 @@ td{padding:6px 4px;border-bottom:1px solid var(--line)}
     <span class="mute bad" id="msg"></span>
    </div>
   </section>
-  <div class="bar2" id="bar"></div>
+  <div class="row" id="bar" style="margin-top:16px"></div>
   <section class="list" id="list"></section>
-  <p class="note">Pehle Sarathi par OTP karo, phir Start dabao. Close ka OTP karke Close dabao. Start aur Close ka time server se likha jata hai.</p>
  </div>
 </main>
 <div id="toast" role="alert"></div>
 <dialog id="dlg"></dialog>
+
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,signOut,updatePassword,sendPasswordResetEmail} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {initializeAuth,browserSessionPersistence,onAuthStateChanged,signInWithEmailAndPassword,signOut,updatePassword,sendPasswordResetEmail} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {getFirestore,collection,doc,getDoc,setDoc,updateDoc,deleteDoc,addDoc,onSnapshot,serverTimestamp,writeBatch} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -127,16 +119,22 @@ const firebaseConfig = {
   appId: "1:328835954936:web:886b352af2bd7a05bbe30d",
   measurementId: "G-Z41B9RKG5K"
 };
-const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
+const app=initializeApp(firebaseConfig);
+// Login sirf isi tab mein rehta hai: tab band hote hi logout, naya tab = naya login.
+const auth=initializeAuth(app,{persistence:browserSessionPersistence});
+const db=getFirestore(app);
 
-const REQ=40*3600000,CN={"2W":"Two wheeler","4W":"Four wheeler","TRK":"Truck"};
-let ready=false,user=null,role=null,who="",students=[],sess=[],unsubs=[],found=null,nw=null,editId=null,info="",mon="all",dirty=false;
+const HEAD="trainingtracker89",REQ=40*3600000;
+const CN={"2W":"Two wheeler","4W":"Four wheeler","TRK":"Truck"};
+let ready=false,user=null,role=null,who="",students=[],sess=[],unsubs=[];
+let found=null,nw=null,editId=null,info="",mon="all",dirty=false;
+
 const $=i=>document.getElementById(i);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const ts=v=>v&&v.toMillis?v.toMillis():(v||0);
 const toId=en=>en.replace(/[\/\s]+/g,"_");
-const HEAD="trainingtracker89";
-const toEmail=r=>r.includes("@")?r:HEAD+"+"+r.replace(/[^a-z0-9._-]/g,"")+"@gmail.com";
+const toEmail=id=>HEAD+"+"+id+"@gmail.com";
+const cleanId=v=>v.trim().toLowerCase().replace(/[^a-z0-9._-]/g,"");
 const accId=e=>{const l=(e||"").split("@")[0];return l.includes("+")?l.split("+")[1]:l};
 const nm=n=>(n||"").split("@")[0];
 const get=id=>students.find(x=>x.id===id);
@@ -145,11 +143,11 @@ const sr=id=>students.findIndex(x=>x.id===id)+1;
 const done=(sid,c)=>{const n=Date.now();return sess.filter(x=>x.sid===sid&&x.c===c).reduce((a,x)=>a+((x.en||n)-x.st),0)};
 const run=sid=>sess.find(x=>x.sid===sid&&!x.en);
 const last=(sid,c)=>sess.filter(x=>x.sid===sid&&x.c===c&&x.en).sort((a,b)=>b.st-a.st)[0];
-function hm(ms,sec){ms=Math.max(0,ms);const h=Math.floor(ms/3600000),m=Math.floor(ms%3600000/60000),s=Math.floor(ms%60000/1000);return h+"h "+m+"m"+(sec?" "+s+"s":"")}
 const tm=t=>new Date(t).toLocaleTimeString("en-IN",{hour:"numeric",minute:"2-digit"});
 const dt=t=>new Date(t).toLocaleDateString("en-IN",{day:"numeric",month:"short"});
 const mk=s=>{const d=new Date(s.created);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")};
 const ml=k=>{const p=k.split("-");return new Date(+p[0],+p[1]-1,1).toLocaleDateString("en-IN",{month:"long",year:"numeric"})};
+function hm(ms,sec){ms=Math.max(0,ms);const h=Math.floor(ms/3600000),m=Math.floor(ms%3600000/60000),s=Math.floor(ms%60000/1000);return h+"h "+m+"m"+(sec?" "+s+"s":"")}
 
 function toast(m){const t=$("toast");t.textContent=m;t.style.display="block";clearTimeout(toast.h);toast.h=setTimeout(()=>t.style.display="none",5000)}
 function errMsg(e){const c=(e&&e.code)||"";if(c.includes("permission-denied"))return"Aapko ye karne ki ijazat nahi hai.";if(c.includes("unavailable")||c.includes("network"))return"Internet ya server ki dikkat hai. Dobara try karo.";return"Nahi ho paya: "+((e&&e.message)||e)}
@@ -162,7 +160,7 @@ function listen(){
    render();
   },e=>toast(errMsg(e))),
   onSnapshot(collection(db,"sessions"),snap=>{
-   sess=snap.docs.map(d=>{const x=d.data({serverTimestamps:"estimate"});return{id:d.id,sid:x.sid,c:x.c,st:ts(x.st),en:x.en?ts(x.en):null,by:nm(x.by),enBy:nm(x.enBy),byAcc:x.byAcc||x.by||"",enAcc:x.enAcc||x.enBy||""}});
+   sess=snap.docs.map(d=>{const x=d.data({serverTimestamps:"estimate"});return{id:d.id,sid:x.sid,c:x.c,st:ts(x.st),en:x.en?ts(x.en):null,by:nm(x.by),enBy:nm(x.enBy),byAcc:x.byAcc||"",enAcc:x.enAcc||""}});
    render();
   },e=>toast(errMsg(e)))
  ];
@@ -170,25 +168,30 @@ function listen(){
 function stopListen(){unsubs.forEach(u=>u());unsubs=[];students=[];sess=[]}
 
 onAuthStateChanged(auth,async u=>{
- stopListen();user=u;role=null;found=null;nw=null;editId=null;info="";who=u?(function(){try{return sessionStorage.getItem("trkWho_"+u.uid)||""}catch(e){return""}})():"";
+ stopListen();user=u;role=null;who="";found=null;nw=null;editId=null;info="";
  if(u){
-  try{const d=await getDoc(doc(db,"users",u.uid));const r=d.exists()?d.data().role:null;role=(r==="admin"||r==="staff")?r:null}catch(e){role=null}
+  try{
+   const d=await getDoc(doc(db,"users",u.uid)),x=d.exists()?d.data():{};
+   role=(x.role==="admin"||x.role==="staff")?x.role:null;who=x.name||"";
+  }catch(e){role=null}
   if(role)listen();
  }
  ready=true;render();
 });
 
 function laneDyn(s,c){
- const d=done(s.id,c),r=run(s.id),mine=r&&r.c===c,pct=s.form>0?100:Math.min(100,d/REQ*100),l=last(s.id,c);let t;
- if(mine)t='<span class="run">Chalu: '+tm(r.st)+' se &middot; '+hm(Date.now()-r.st,1)+'</span> &middot; Start: '+esc(r.by||"-");
+ const d=done(s.id,c),r=run(s.id),l=last(s.id,c),pct=s.form>0?100:Math.min(100,d/REQ*100);let t;
+ if(r&&r.c===c)t='<span class="run">Chalu: '+tm(r.st)+' se &middot; '+hm(Date.now()-r.st,1)+'</span> &middot; Start: '+esc(r.by||"-");
  else if(l)t='Last: '+dt(l.st)+', '+tm(l.st)+' se '+tm(l.en)+' tak &middot; '+hm(l.en-l.st)+' &middot; Start: '+esc(l.by||"-")+', Close: '+esc(l.enBy||"-");
  else t='Abhi training shuru nahi hui';
  return '<div class="mute">'+t+'</div><div class="bar"><i class="'+(pct>=100?"full":"")+'" style="width:'+pct+'%"></i></div>'+
-  '<div class="hrs"><span><span class="big">'+hm(d)+'</span> <span class="mute">hua / 40h</span></span><span class="mute">Baaki: '+(d>=REQ?'0h 0m':hm(REQ-d))+'</span></div>';
+  '<div class="row"><span><span class="big">'+hm(d)+'</span> <span class="mute">hua / 40h</span></span><span class="mute">Baaki: '+(d>=REQ?'0h 0m':hm(REQ-d))+'</span></div>';
 }
 function laneHtml(s,c){
- const r=run(s.id),mine=r&&r.c===c;
- const btn=mine?'<button class="stop" data-stop="'+s.id+'">Close</button>':'<button class="pri" data-start="'+s.id+'|'+c+'"'+(r||s.form===2?" disabled":"")+'>Start</button>';
+ const r=run(s.id);let btn;
+ if(r&&r.c===c){
+  btn='<button class="stop" data-stop="'+s.id+'">Close</button>';
+ }else btn='<button class="pri" data-start="'+s.id+'|'+c+'"'+(r||s.form===2?' disabled':'')+'>Start</button>';
  return '<div class="lane"><span class="lab">'+CN[c]+'</span><div class="dyn" data-lane="'+s.id+'|'+c+'">'+laneDyn(s,c)+'</div>'+btn+'</div>';
 }
 function formHtml(s){
@@ -197,14 +200,14 @@ function formHtml(s){
   '<input data-f="name" placeholder="Student ka naam" value="'+esc(s.name||"")+'">'+
   '<input data-f="father" placeholder="Father ka naam" value="'+esc(s.father||"")+'">'+
   '<input data-f="phone" inputmode="tel" placeholder="Mobile number" value="'+esc(s.phone||"")+'">'+
-  '<select data-f="cls"'+(has?" disabled":"")+'><option value="">Vehicle chuno</option>'+
-  [["2W","Two wheeler"],["4W","Four wheeler"],["BOTH","Both (2W + 4W)"],["TRK","Truck"]].map(o=>'<option value="'+o[0]+'"'+(s.cls===o[0]&&!isNew?" selected":"")+'>'+o[1]+'</option>').join("")+'</select></div>'+
+  '<select data-f="cls"'+(has?' disabled':'')+'><option value="">Vehicle chuno</option>'+
+  [["2W","Two wheeler"],["4W","Four wheeler"],["BOTH","Both (2W + 4W)"],["TRK","Truck"]].map(o=>'<option value="'+o[0]+'"'+(s.cls===o[0]&&!isNew?' selected':'')+'>'+o[1]+'</option>').join("")+'</select></div>'+
   '<div class="foot"><button class="pri" data-save="'+s.id+'">Save karo</button><button data-cancel="1">Rehne do</button>'+
   (isNew?'':'<button data-del="'+s.id+'">Student hatao</button>')+'<span class="mute bad" data-err></span></div>';
 }
 function card(s,n){
- const isA=role==="admin",hl=found===s.id?" hl":"";
- let h='<article class="stu'+hl+'" data-card="'+s.id+'"><div class="head"><div><span class="mute">'+n+'.</span> <span class="name">'+esc(s.name)+'</span> <span class="mute">s/o '+esc(s.father||"-")+'</span></div>'+
+ const isA=role==="admin";
+ let h='<article class="stu'+(found===s.id?' hl':'')+'" data-card="'+s.id+'"><div class="row"><div><span class="mute">'+n+'.</span> <span class="name">'+esc(s.name)+'</span> <span class="mute">s/o '+esc(s.father||"-")+'</span></div>'+
   '<div class="mute">'+esc(s.phone||"")+' &middot; Enroll <button class="link" data-open="'+s.id+'">'+esc(s.enroll)+'</button></div></div>';
  if(isA&&editId===s.id)return h+formHtml(s)+'</article>';
  const ls=lanes(s),all=ls.every(c=>done(s.id,c)>=REQ);let f="";
@@ -215,52 +218,56 @@ function card(s,n){
  return h+ls.map(c=>laneHtml(s,c)).join("")+(f?'<div class="foot">'+f+'</div>':'')+'</article>';
 }
 function typing(){const a=document.activeElement;return a&&a.closest&&a.closest("#list")&&/INPUT|SELECT/.test(a.tagName)}
+
 function render(){
  if(typing()){dirty=true;return}
  dirty=false;
+ const inApp=ready&&role&&who;
  $("loading").style.display=ready?"none":"grid";
  $("loginView").style.display=ready&&!user?"grid":"none";
  $("noRole").style.display=ready&&user&&!role?"grid":"none";
- $("nameView").style.display=ready&&role&&!who?"grid":"none";if(ready&&role&&!who&&!$("nname").value){try{$("nname").value=localStorage.getItem("trkName_"+user.uid)||""}catch(e){}}$("app").style.display=ready&&role&&who?"block":"none";
- if(!(ready&&role&&who))return;
+ $("nameView").style.display=ready&&role&&!who?"grid":"none";
+ $("app").style.display=inApp?"block":"none";
+ if(!inApp)return;
  const isA=role==="admin";
- $("roleBar").innerHTML='<span class="chip '+(isA?"good":"")+'">'+(isA?"Admin":"Staff")+'</span><span class="mute">'+esc(who)+' ('+esc(accId(user.email))+')'+'</span>'+(isA?'<button data-pw="1">Password badlo</button>':'')+'<button data-logout="1">Logout</button>';
+ $("roleBar").innerHTML='<span class="chip '+(isA?'good':'')+'">'+(isA?'Admin':'Staff')+'</span><span class="mute">'+esc(who)+' ('+esc(accId(user.email))+')</span>'+
+  (isA?'<button data-pw="1">Password badlo</button>':'')+'<button data-logout="1">Logout</button>';
  $("enrollPanel").style.display=isA?"block":"none";
- $("sub").textContent=isA?"Admin: enroll, details, edit, delete aur poori list.":"Staff: students ki list. Training ke liye Start aur Close dabao.";
  const keys={};students.forEach(s=>{keys[mk(s)]=1});
  const ks=Object.keys(keys).sort().reverse();
  if(mon!=="all"&&!keys[mon])mon="all";
  $("bar").innerHTML='<div><span class="mute">Mahina:</span> <select id="mon" aria-label="Mahina"><option value="all">Sab mahine</option>'+
-  ks.map(k=>'<option value="'+k+'"'+(mon===k?" selected":"")+'>'+ml(k)+'</option>').join("")+'</select></div>'+
+  ks.map(k=>'<option value="'+k+'"'+(mon===k?' selected':'')+'>'+ml(k)+'</option>').join("")+'</select></div>'+
   (isA?'<div class="foot" style="margin:0"><button data-csv="students">Students CSV</button><button data-csv="sessions">Sessions CSV</button></div>':'');
  let h="";
  if(isA){
   if(info)h+='<div class="panel good"><b>'+esc(info)+'</b></div>';
-  if(nw!==null)h+='<article class="stu"><div class="head"><span class="name">Naya: Enroll '+esc(nw)+'</span><span class="chip mid">Details bharo</span></div>'+formHtml({id:"new",enroll:nw,name:"",father:"",phone:"",cls:""})+'</article>';
+  if(nw!==null)h+='<article class="stu"><div class="row"><span class="name">Naya: Enroll '+esc(nw)+'</span><span class="chip mid">Details bharo</span></div>'+formHtml({id:"new",enroll:nw,name:"",father:"",phone:"",cls:""})+'</article>';
  }
  let shown=0;
  ks.forEach(k=>{
   if(mon!=="all"&&mon!==k)return;
   const g=students.filter(s=>mk(s)===k);
-  h+='<h2 class="mh">'+ml(k)+' <span class="mute">('+g.length+' students)</span></h2>';
+  h+='<h2>'+ml(k)+' <span class="mute">('+g.length+' students)</span></h2>';
   g.forEach(s=>{h+=card(s,sr(s.id));shown++});
  });
- if(!shown)h+='<div class="empty">'+(isA?'Abhi koi student save nahi hai. Upar enroll no. likhke shuru karo.':'Admin ne abhi koi student save nahi kiya.')+'</div>';
+ if(!shown)h+='<div class="empty">'+(isA?'Abhi koi student nahi hai. Upar enroll no. likhke shuru karo.':'Admin ne abhi koi student save nahi kiya.')+'</div>';
  $("list").innerHTML=h;
 }
+
+function openDlg(h){const d=$("dlg");d.innerHTML=h;if(!d.open)d.showModal()}
+function closeDlg(){const d=$("dlg");if(d.open)d.close()}
 function detail(id){
  const s=get(id);if(!s)return;
- let h='<div class="head"><div class="name">'+esc(s.name)+'</div><button data-close="1">Band karo</button></div>'+
+ const isA=role==="admin",ss=sess.filter(x=>x.sid===id).sort((a,b)=>b.st-a.st);
+ let h='<div class="row"><div class="name">'+esc(s.name)+'</div><button data-close="1">Band karo</button></div>'+
   '<p class="mute">Enroll '+esc(s.enroll)+' &middot; s/o '+esc(s.father||"-")+' &middot; '+esc(s.phone||"-")+' &middot; '+(s.cls==="BOTH"?"Two + Four wheeler":CN[s.cls])+'</p>';
  lanes(s).forEach(c=>{const d=done(id,c);h+='<p><b>'+CN[c]+':</b> '+hm(d)+' ho chuka, '+(d>=REQ?'poora':hm(REQ-d)+' baaki')+'</p>'});
- const ss=sess.filter(x=>x.sid===id).sort((a,b)=>b.st-a.st),isA=role==="admin";
  h+='<div class="wrap"><table><thead><tr><th>Date</th><th>Vehicle</th><th>Start</th><th>Close</th><th>Total</th><th>Start kisne</th><th>Close kisne</th>'+(isA?'<th></th>':'')+'</tr></thead><tbody>';
  ss.forEach(x=>{h+='<tr><td>'+dt(x.st)+'</td><td>'+x.c+'</td><td>'+tm(x.st)+'</td><td>'+(x.en?tm(x.en):'chalu')+'</td><td>'+hm((x.en||Date.now())-x.st)+'</td><td class="mute">'+esc(x.by||"-")+'</td><td class="mute">'+esc(x.en?(x.enBy||"-"):"")+'</td>'+(isA?'<td><button data-delsess="'+x.id+'" aria-label="Session hatao">&times;</button></td>':'')+'</tr>'});
  if(!ss.length)h+='<tr><td colspan="8" class="mute">Abhi koi session nahi.</td></tr>';
  openDlg(h+'</tbody></table></div>');
 }
-function openDlg(h){const d=$("dlg");d.innerHTML=h;if(!d.open)d.showModal()}
-function closeDlg(){const d=$("dlg");if(d.open)d.close()}
 function reset(){found=null;nw=null;editId=null;$("fEnroll").value="";$("msg").textContent=""}
 
 function csv(rows){return "\ufeff"+rows.map(r=>r.map(v=>'"'+String(v==null?"":v).replace(/"/g,'""')+'"').join(",")).join("\r\n")}
@@ -272,7 +279,7 @@ function exportCsv(kind){
   students.forEach(s=>rows.push([sr(s.id),s.enroll,s.name,s.father,s.phone,s.cls,hm(done(s.id,"2W")),hm(done(s.id,"4W")),hm(done(s.id,"TRK")),s.form===2?"Complete File":s.form===1?"Waiting for Apply":""]));
   download("students-"+day+".csv",csv(rows));
  }else{
-  const rows=[["Enroll","Naam","Vehicle","Date","Start","Close","Minutes","Start kisne","Close kisne","Start account","Close account"]];
+  const rows=[["Enroll","Naam","Vehicle","Date","Start","Close","Minutes","Start kisne","Close kisne","Start ID","Close ID"]];
   sess.slice().sort((a,b)=>a.st-b.st).forEach(x=>{const s=get(x.sid)||{enroll:"?",name:"(hata diya)"};
    rows.push([s.enroll,s.name,x.c,new Date(x.st).toLocaleDateString("en-IN"),tm(x.st),x.en?tm(x.en):"",x.en?Math.round((x.en-x.st)/60000):"",x.by,x.enBy,accId(x.byAcc),accId(x.enAcc)])});
   download("sessions-"+day+".csv",csv(rows));
@@ -280,24 +287,23 @@ function exportCsv(kind){
 }
 
 async function doLogin(){
- const raw=$("lemail").value.trim().toLowerCase(),em=toEmail(raw),pw=$("lpass").value,m=$("lmsg");
- if(!raw||!pw){m.textContent="ID aur password dono likho.";return}
+ const id=cleanId($("lid").value),pw=$("lpass").value,m=$("lmsg");
+ if(!id||!pw){m.textContent="ID aur password dono likho.";return}
  m.textContent="";
- try{await signInWithEmailAndPassword(auth,em,pw);$("lpass").value=""}
+ try{await signInWithEmailAndPassword(auth,toEmail(id),pw);$("lpass").value=""}
  catch(e){const c=e.code||"";m.textContent=c.includes("too-many")?"Bahut baar galat try hua. Thodi der baad dobara karo.":c.includes("network")?"Internet check karo.":"ID ya password galat hai."}
 }
 async function doReset(){
- const raw=$("lemail").value.trim().toLowerCase(),m=$("lmsg");
- if(!raw){m.textContent="Upar apni ID likho, phir ye dabao.";return}
- try{await sendPasswordResetEmail(auth,toEmail(raw))}catch(e){}
+ const id=cleanId($("lid").value),m=$("lmsg");
+ if(!id){m.textContent="Upar apni ID likho, phir ye dabao.";return}
+ try{await sendPasswordResetEmail(auth,toEmail(id))}catch(e){}
  m.textContent="Reset link head email par bhej diya gaya hai. Admin wo link kholke naya password set karke bata dega."
 }
-function setWho(){
- const v=$("nname").value.trim(),m=$("nmsg");
+async function setWho(){
+ const v=$("nname").value.trim().slice(0,30),m=$("nmsg");
  if(v.length<2){m.textContent="Apna naam likho (kam se kam 2 akshar).";return}
- who=v.slice(0,30);
- try{sessionStorage.setItem("trkWho_"+user.uid,who);localStorage.setItem("trkName_"+user.uid,who)}catch(e){}
- m.textContent="";render();
+ try{await updateDoc(doc(db,"users",user.uid),{name:v});who=v;m.textContent="";render()}
+ catch(e){m.textContent=errMsg(e)}
 }
 async function savePw(){
  const p=$("npw").value,m=$("pwMsg");
@@ -320,28 +326,31 @@ document.addEventListener("focusout",()=>{if(dirty)setTimeout(()=>{if(!typing())
 document.addEventListener("keydown",e=>{
  if(e.key!=="Enter")return;
  const id=e.target.id;
- if(id==="fEnroll")lookup();else if(id==="lemail"||id==="lpass")doLogin();else if(id==="nname")setWho();
+ if(id==="fEnroll")lookup();
+ else if(id==="lid"||id==="lpass")doLogin();
+ else if(id==="nname")setWho();
 });
 document.addEventListener("click",e=>{
  const t=e.target;let n;
  if(t.closest("#lgo")){doLogin();return}
  if(t.closest("#lreset")){doReset();return}
  if(t.closest("#ngo")){setWho();return}
- if(role==="admin"&&t.closest("[data-pw]")){openDlg('<div class="name">Password badlo</div><div class="form" style="margin-top:10px"><input id="npw" type="password" placeholder="Naya password (kam se kam 6 akshar)" aria-label="Naya password" autocomplete="new-password"></div><div class="foot"><button class="pri" data-savepw="1">Save karo</button><button data-close="1">Band karo</button></div><p class="mute" id="pwMsg"></p>');return}
- if(role==="admin"&&t.closest("[data-savepw]")){savePw();return}
  if(t.closest("#add")){lookup();return}
- if(t.closest("[data-logout]")){closeDlg();try{sessionStorage.removeItem("trkWho_"+user.uid)}catch(e){}signOut(auth);return}
- if(!role)return;
+ if(t.closest("[data-logout]")){closeDlg();signOut(auth);return}
+ if(!role||!who)return;
  if((n=t.closest("[data-start]"))){
   const v=n.dataset.start.split("|");
   if(run(v[0]))return;
   act(()=>addDoc(collection(db,"sessions"),{sid:v[0],c:v[1],st:serverTimestamp(),en:null,by:who,byAcc:user.email}));return}
  if((n=t.closest("[data-stop]"))){
-  const r=run(n.dataset.stop);if(!r)return;
+  const r=run(n.dataset.stop);
+  if(!r)return;
   act(()=>updateDoc(doc(db,"sessions",r.id),{en:serverTimestamp(),enBy:who,enAcc:user.email}));return}
  if((n=t.closest("[data-open]"))){detail(n.dataset.open);return}
  if(t.closest("[data-close]")){closeDlg();return}
  if(role!=="admin")return;
+ if(t.closest("[data-pw]")){openDlg('<div class="name">Password badlo</div><div class="form" style="margin-top:10px"><input id="npw" type="password" placeholder="Naya password (kam se kam 6 akshar)" aria-label="Naya password" autocomplete="new-password"></div><div class="foot"><button class="pri" data-savepw="1">Save karo</button><button data-close="1">Band karo</button></div><p class="mute" id="pwMsg"></p>');return}
+ if(t.closest("[data-savepw]")){savePw();return}
  if((n=t.closest("[data-csv]"))){exportCsv(n.dataset.csv);return}
  if((n=t.closest("[data-delsess]"))){act(()=>deleteDoc(doc(db,"sessions",n.dataset.delsess)));return}
  if((n=t.closest("[data-form]"))){act(()=>updateDoc(doc(db,"students",n.dataset.form),{form:1}));return}
@@ -370,7 +379,8 @@ document.addEventListener("click",e=>{
   act(async()=>{
    const b=writeBatch(db);sess.filter(x=>x.sid===id).forEach(x=>b.delete(doc(db,"sessions",x.id)));b.delete(doc(db,"students",id));
    await b.commit();reset();info="Student hata diya.";render();
-  });return}
+  });
+ }
 });
 setInterval(()=>{
  if(!role||!sess.some(x=>!x.en))return;
