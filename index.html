@@ -212,7 +212,7 @@ function card(s,n){
  if(isA&&editId===s.id)return h+formHtml(s)+'</article>';
  const ls=lanes(s),all=ls.every(c=>done(s.id,c)>=REQ);let f="";
  if(s.form===2)f='<span class="chip good">Complete File</span>';
- else if(s.form===1)f='<span class="chip mid">Waiting for Apply</span>'+(isA?' <button data-apply="'+s.id+'">Apply ho gaya</button>':'');
+ else if(s.form===1)f='<span class="chip mid">Waiting for Apply</span>'+(isA?' <button data-apply="'+s.id+'">Waiting For Apply</button>':'');
  else{if(all)f='<span class="chip good">40 ghante poore</span> ';if(isA)f+='<button data-form="'+s.id+'">Complete</button>'}
  if(isA)f+=' <button data-edit="'+s.id+'">Edit</button> <button data-del="'+s.id+'">Delete</button>';
  return h+ls.map(c=>laneHtml(s,c)).join("")+(f?'<div class="foot">'+f+'</div>':'')+'</article>';
@@ -378,7 +378,7 @@ document.addEventListener("click",e=>{
   if(!s||!window.confirm(s.name+" aur uske saare sessions hamesha ke liye hata dein?"))return;
   act(async()=>{
    const b=writeBatch(db);sess.filter(x=>x.sid===id).forEach(x=>b.delete(doc(db,"sessions",x.id)));b.delete(doc(db,"students",id));
-   await b.commit();reset();info="Student hata diya.";render();
+   await b.commit();reset();info=" ";render();
   });
  }
 });
