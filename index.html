@@ -67,13 +67,13 @@ td{padding:6px 4px;border-bottom:1px solid var(--line)}
  <section class="center" id="loginView" style="display:none">
   <div class="panel lcard">
    <h1>Training tracker</h1>
-   <p class="sub">Apna naam aur password likho.</p>
+   <p class="sub">Apni ID (naam) aur password likho.</p>
    <div style="height:12px"></div>
-   <input id="lemail" type="text" placeholder="Naam (jaise admin ya ravi)" aria-label="Naam" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false">
+   <input id="lemail" type="text" placeholder="ID (jaise admin ya ravi)" aria-label="ID" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false">
    <input id="lpass" type="password" placeholder="Password" aria-label="Password" autocomplete="current-password">
    <button class="pri" id="lgo" style="width:100%">Login</button>
    <p class="mute bad" id="lmsg"></p>
-   <p class="mute">Password bhool gaye to admin se kaho.</p>
+   <button class="link" id="lreset">Password bhool gaye?</button>
   </div>
  </section>
  <section class="center" id="noRole" style="display:none">
@@ -82,6 +82,16 @@ td{padding:6px 4px;border-bottom:1px solid var(--line)}
    <p class="sub">Is account ko abhi admin ya staff ka role nahi diya gaya. Admin se kaho ki setup poora kare.</p>
    <div style="height:12px"></div>
    <button data-logout="1">Logout</button>
+  </div>
+ </section>
+ <section class="center" id="nameView" style="display:none">
+  <div class="panel lcard">
+   <h1>Aapka naam?</h1>
+   <p class="sub">Jo naam likhoge wahi Start aur Close ke saath dikhega.</p>
+   <div style="height:12px"></div>
+   <input id="nname" type="text" maxlength="30" placeholder="Apna naam" aria-label="Apna naam" autocomplete="off">
+   <button class="pri" id="ngo" style="width:100%">Aage badho</button>
+   <p class="mute bad" id="nmsg"></p>
   </div>
  </section>
  <div id="app" style="display:none">
@@ -105,7 +115,7 @@ td{padding:6px 4px;border-bottom:1px solid var(--line)}
 <dialog id="dlg"></dialog>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,signOut,updatePassword} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,signOut,updatePassword,sendPasswordResetEmail} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {getFirestore,collection,doc,getDoc,setDoc,updateDoc,deleteDoc,addDoc,onSnapshot,serverTimestamp,writeBatch} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -120,11 +130,15 @@ const firebaseConfig = {
 const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
 
 const REQ=40*3600000,CN={"2W":"Two wheeler","4W":"Four wheeler","TRK":"Truck"};
-let ready=false,user=null,role=null,students=[],sess=[],unsubs=[],found=null,nw=null,editId=null,info="",mon="all",dirty=false;
+let ready=false,user=null,role=null,who="",students=[],sess=[],unsubs=[],found=null,nw=null,editId=null,info="",mon="all",dirty=false;
 const $=i=>document.getElementById(i);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const ts=v=>v&&v.toMillis?v.toMillis():(v||0);
 const toId=en=>en.replace(/[\/\s]+/g,"_");
+const HEAD="trainingtracker89";
+const toEmail=r=>r.includes("@")?r:HEAD+"+"+r.replace(/[^a-z0-9._-]/g,"")+"@gmail.com";
+const accId=e=>{const l=(e||"").split("@")[0];return l.includes("+")?l.split("+")[1]:l};
+const nm=n=>(n||"").split("@")[0];
 const get=id=>students.find(x=>x.id===id);
 const lanes=s=>s.cls==="BOTH"?["2W","4W"]:[s.cls];
 const sr=id=>students.findIndex(x=>x.id===id)+1;
@@ -148,7 +162,7 @@ function listen(){
    render();
   },e=>toast(errMsg(e))),
   onSnapshot(collection(db,"sessions"),snap=>{
-   sess=snap.docs.map(d=>{const x=d.data({serverTimestamps:"estimate"});return{id:d.id,sid:x.sid,c:x.c,st:ts(x.st),en:x.en?ts(x.en):null,by:x.by||"",enBy:x.enBy||""}});
+   sess=snap.docs.map(d=>{const x=d.data({serverTimestamps:"estimate"});return{id:d.id,sid:x.sid,c:x.c,st:ts(x.st),en:x.en?ts(x.en):null,by:nm(x.by),enBy:nm(x.enBy),byAcc:x.byAcc||x.by||"",enAcc:x.enAcc||x.enBy||""}});
    render();
   },e=>toast(errMsg(e)))
  ];
@@ -156,7 +170,7 @@ function listen(){
 function stopListen(){unsubs.forEach(u=>u());unsubs=[];students=[];sess=[]}
 
 onAuthStateChanged(auth,async u=>{
- stopListen();user=u;role=null;found=null;nw=null;editId=null;info="";
+ stopListen();user=u;role=null;found=null;nw=null;editId=null;info="";who=u?(function(){try{return sessionStorage.getItem("trkWho_"+u.uid)||""}catch(e){return""}})():"";
  if(u){
   try{const d=await getDoc(doc(db,"users",u.uid));const r=d.exists()?d.data().role:null;role=(r==="admin"||r==="staff")?r:null}catch(e){role=null}
   if(role)listen();
@@ -166,8 +180,8 @@ onAuthStateChanged(auth,async u=>{
 
 function laneDyn(s,c){
  const d=done(s.id,c),r=run(s.id),mine=r&&r.c===c,pct=s.form>0?100:Math.min(100,d/REQ*100),l=last(s.id,c);let t;
- if(mine)t='<span class="run">Chalu: '+tm(r.st)+' se &middot; '+hm(Date.now()-r.st,1)+'</span>';
- else if(l)t='Last: '+dt(l.st)+', '+tm(l.st)+' se '+tm(l.en)+' tak &middot; '+hm(l.en-l.st);
+ if(mine)t='<span class="run">Chalu: '+tm(r.st)+' se &middot; '+hm(Date.now()-r.st,1)+'</span> &middot; Start: '+esc(r.by||"-");
+ else if(l)t='Last: '+dt(l.st)+', '+tm(l.st)+' se '+tm(l.en)+' tak &middot; '+hm(l.en-l.st)+' &middot; Start: '+esc(l.by||"-")+', Close: '+esc(l.enBy||"-");
  else t='Abhi training shuru nahi hui';
  return '<div class="mute">'+t+'</div><div class="bar"><i class="'+(pct>=100?"full":"")+'" style="width:'+pct+'%"></i></div>'+
   '<div class="hrs"><span><span class="big">'+hm(d)+'</span> <span class="mute">hua / 40h</span></span><span class="mute">Baaki: '+(d>=REQ?'0h 0m':hm(REQ-d))+'</span></div>';
@@ -207,10 +221,10 @@ function render(){
  $("loading").style.display=ready?"none":"grid";
  $("loginView").style.display=ready&&!user?"grid":"none";
  $("noRole").style.display=ready&&user&&!role?"grid":"none";
- $("app").style.display=ready&&role?"block":"none";
- if(!(ready&&role))return;
+ $("nameView").style.display=ready&&role&&!who?"grid":"none";if(ready&&role&&!who&&!$("nname").value){try{$("nname").value=localStorage.getItem("trkName_"+user.uid)||""}catch(e){}}$("app").style.display=ready&&role&&who?"block":"none";
+ if(!(ready&&role&&who))return;
  const isA=role==="admin";
- $("roleBar").innerHTML='<span class="chip '+(isA?"good":"")+'">'+(isA?"Admin":"Staff")+'</span><span class="mute">'+esc((user.email||"").split("@")[0])+'</span><button data-pw="1">Password badlo</button><button data-logout="1">Logout</button>';
+ $("roleBar").innerHTML='<span class="chip '+(isA?"good":"")+'">'+(isA?"Admin":"Staff")+'</span><span class="mute">'+esc(who)+' ('+esc(accId(user.email))+')'+'</span>'+(isA?'<button data-pw="1">Password badlo</button>':'')+'<button data-logout="1">Logout</button>';
  $("enrollPanel").style.display=isA?"block":"none";
  $("sub").textContent=isA?"Admin: enroll, details, edit, delete aur poori list.":"Staff: students ki list. Training ke liye Start aur Close dabao.";
  const keys={};students.forEach(s=>{keys[mk(s)]=1});
@@ -240,9 +254,9 @@ function detail(id){
   '<p class="mute">Enroll '+esc(s.enroll)+' &middot; s/o '+esc(s.father||"-")+' &middot; '+esc(s.phone||"-")+' &middot; '+(s.cls==="BOTH"?"Two + Four wheeler":CN[s.cls])+'</p>';
  lanes(s).forEach(c=>{const d=done(id,c);h+='<p><b>'+CN[c]+':</b> '+hm(d)+' ho chuka, '+(d>=REQ?'poora':hm(REQ-d)+' baaki')+'</p>'});
  const ss=sess.filter(x=>x.sid===id).sort((a,b)=>b.st-a.st),isA=role==="admin";
- h+='<div class="wrap"><table><thead><tr><th>Date</th><th>Vehicle</th><th>Start</th><th>Close</th><th>Total</th><th>Kisne</th>'+(isA?'<th></th>':'')+'</tr></thead><tbody>';
- ss.forEach(x=>{h+='<tr><td>'+dt(x.st)+'</td><td>'+x.c+'</td><td>'+tm(x.st)+'</td><td>'+(x.en?tm(x.en):'chalu')+'</td><td>'+hm((x.en||Date.now())-x.st)+'</td><td class="mute">'+esc((x.by||"").split("@")[0])+'</td>'+(isA?'<td><button data-delsess="'+x.id+'" aria-label="Session hatao">&times;</button></td>':'')+'</tr>'});
- if(!ss.length)h+='<tr><td colspan="7" class="mute">Abhi koi session nahi.</td></tr>';
+ h+='<div class="wrap"><table><thead><tr><th>Date</th><th>Vehicle</th><th>Start</th><th>Close</th><th>Total</th><th>Start kisne</th><th>Close kisne</th>'+(isA?'<th></th>':'')+'</tr></thead><tbody>';
+ ss.forEach(x=>{h+='<tr><td>'+dt(x.st)+'</td><td>'+x.c+'</td><td>'+tm(x.st)+'</td><td>'+(x.en?tm(x.en):'chalu')+'</td><td>'+hm((x.en||Date.now())-x.st)+'</td><td class="mute">'+esc(x.by||"-")+'</td><td class="mute">'+esc(x.en?(x.enBy||"-"):"")+'</td>'+(isA?'<td><button data-delsess="'+x.id+'" aria-label="Session hatao">&times;</button></td>':'')+'</tr>'});
+ if(!ss.length)h+='<tr><td colspan="8" class="mute">Abhi koi session nahi.</td></tr>';
  openDlg(h+'</tbody></table></div>');
 }
 function openDlg(h){const d=$("dlg");d.innerHTML=h;if(!d.open)d.showModal()}
@@ -258,19 +272,32 @@ function exportCsv(kind){
   students.forEach(s=>rows.push([sr(s.id),s.enroll,s.name,s.father,s.phone,s.cls,hm(done(s.id,"2W")),hm(done(s.id,"4W")),hm(done(s.id,"TRK")),s.form===2?"Complete File":s.form===1?"Waiting for Apply":""]));
   download("students-"+day+".csv",csv(rows));
  }else{
-  const rows=[["Enroll","Naam","Vehicle","Date","Start","Close","Minutes","Start kisne","Close kisne"]];
+  const rows=[["Enroll","Naam","Vehicle","Date","Start","Close","Minutes","Start kisne","Close kisne","Start account","Close account"]];
   sess.slice().sort((a,b)=>a.st-b.st).forEach(x=>{const s=get(x.sid)||{enroll:"?",name:"(hata diya)"};
-   rows.push([s.enroll,s.name,x.c,new Date(x.st).toLocaleDateString("en-IN"),tm(x.st),x.en?tm(x.en):"",x.en?Math.round((x.en-x.st)/60000):"",x.by,x.enBy])});
+   rows.push([s.enroll,s.name,x.c,new Date(x.st).toLocaleDateString("en-IN"),tm(x.st),x.en?tm(x.en):"",x.en?Math.round((x.en-x.st)/60000):"",x.by,x.enBy,accId(x.byAcc),accId(x.enAcc)])});
   download("sessions-"+day+".csv",csv(rows));
  }
 }
 
 async function doLogin(){
- const raw=$("lemail").value.trim().toLowerCase(),em=raw.includes("@")?raw:raw.replace(/\s+/g,"")+"@tracker.example.com",pw=$("lpass").value,m=$("lmsg");
- if(!raw||!pw){m.textContent="Naam aur password dono likho.";return}
+ const raw=$("lemail").value.trim().toLowerCase(),em=toEmail(raw),pw=$("lpass").value,m=$("lmsg");
+ if(!raw||!pw){m.textContent="ID aur password dono likho.";return}
  m.textContent="";
  try{await signInWithEmailAndPassword(auth,em,pw);$("lpass").value=""}
- catch(e){const c=e.code||"";m.textContent=c.includes("too-many")?"Bahut baar galat try hua. Thodi der baad dobara karo.":c.includes("network")?"Internet check karo.":"Naam ya password galat hai."}
+ catch(e){const c=e.code||"";m.textContent=c.includes("too-many")?"Bahut baar galat try hua. Thodi der baad dobara karo.":c.includes("network")?"Internet check karo.":"ID ya password galat hai."}
+}
+async function doReset(){
+ const raw=$("lemail").value.trim().toLowerCase(),m=$("lmsg");
+ if(!raw){m.textContent="Upar apni ID likho, phir ye dabao.";return}
+ try{await sendPasswordResetEmail(auth,toEmail(raw))}catch(e){}
+ m.textContent="Reset link head email par bhej diya gaya hai. Admin wo link kholke naya password set karke bata dega."
+}
+function setWho(){
+ const v=$("nname").value.trim(),m=$("nmsg");
+ if(v.length<2){m.textContent="Apna naam likho (kam se kam 2 akshar).";return}
+ who=v.slice(0,30);
+ try{sessionStorage.setItem("trkWho_"+user.uid,who);localStorage.setItem("trkName_"+user.uid,who)}catch(e){}
+ m.textContent="";render();
 }
 async function savePw(){
  const p=$("npw").value,m=$("pwMsg");
@@ -293,23 +320,25 @@ document.addEventListener("focusout",()=>{if(dirty)setTimeout(()=>{if(!typing())
 document.addEventListener("keydown",e=>{
  if(e.key!=="Enter")return;
  const id=e.target.id;
- if(id==="fEnroll")lookup();else if(id==="lemail"||id==="lpass")doLogin();
+ if(id==="fEnroll")lookup();else if(id==="lemail"||id==="lpass")doLogin();else if(id==="nname")setWho();
 });
 document.addEventListener("click",e=>{
  const t=e.target;let n;
  if(t.closest("#lgo")){doLogin();return}
- if(t.closest("[data-pw]")){openDlg('<div class="name">Password badlo</div><div class="form" style="margin-top:10px"><input id="npw" type="password" placeholder="Naya password (kam se kam 6 akshar)" aria-label="Naya password" autocomplete="new-password"></div><div class="foot"><button class="pri" data-savepw="1">Save karo</button><button data-close="1">Band karo</button></div><p class="mute" id="pwMsg"></p>');return}
- if(t.closest("[data-savepw]")){savePw();return}
+ if(t.closest("#lreset")){doReset();return}
+ if(t.closest("#ngo")){setWho();return}
+ if(role==="admin"&&t.closest("[data-pw]")){openDlg('<div class="name">Password badlo</div><div class="form" style="margin-top:10px"><input id="npw" type="password" placeholder="Naya password (kam se kam 6 akshar)" aria-label="Naya password" autocomplete="new-password"></div><div class="foot"><button class="pri" data-savepw="1">Save karo</button><button data-close="1">Band karo</button></div><p class="mute" id="pwMsg"></p>');return}
+ if(role==="admin"&&t.closest("[data-savepw]")){savePw();return}
  if(t.closest("#add")){lookup();return}
- if(t.closest("[data-logout]")){closeDlg();signOut(auth);return}
+ if(t.closest("[data-logout]")){closeDlg();try{sessionStorage.removeItem("trkWho_"+user.uid)}catch(e){}signOut(auth);return}
  if(!role)return;
  if((n=t.closest("[data-start]"))){
   const v=n.dataset.start.split("|");
   if(run(v[0]))return;
-  act(()=>addDoc(collection(db,"sessions"),{sid:v[0],c:v[1],st:serverTimestamp(),en:null,by:user.email}));return}
+  act(()=>addDoc(collection(db,"sessions"),{sid:v[0],c:v[1],st:serverTimestamp(),en:null,by:who,byAcc:user.email}));return}
  if((n=t.closest("[data-stop]"))){
   const r=run(n.dataset.stop);if(!r)return;
-  act(()=>updateDoc(doc(db,"sessions",r.id),{en:serverTimestamp(),enBy:user.email}));return}
+  act(()=>updateDoc(doc(db,"sessions",r.id),{en:serverTimestamp(),enBy:who,enAcc:user.email}));return}
  if((n=t.closest("[data-open]"))){detail(n.dataset.open);return}
  if(t.closest("[data-close]")){closeDlg();return}
  if(role!=="admin")return;
@@ -351,4 +380,3 @@ render();
 </script>
 </body>
 </html>
-
