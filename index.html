@@ -64,15 +64,15 @@ td{padding:6px 4px;border-bottom:1px solid var(--line)}
    <input id="lpass" type="password" placeholder="Password" aria-label="Password" autocomplete="current-password">
    <button class="pri" id="lgo" style="width:100%">Login</button>
    <p class="mute bad" id="lmsg"></p>
-   <button class="link" id="lreset">Password bhool gaye?</button>
+   <button class="link" id="lreset">Forget Password?</button>
   </div>
  </section>
 
  <section class="center" id="nameView" style="display:none">
   <div class="panel card">
    <h1>Aapka naam?</h1>
-   <p class="mute">Ye sirf ek baar puchha jayega. Yahi naam Start aur Close ke saath dikhega.</p>
-   <input id="nname" type="text" maxlength="30" placeholder="Apna naam" aria-label="Apna naam" autocomplete="off">
+   <p class="mute"> </p>
+   <input id="nname" type="text" maxlength="30" placeholder="Your Name" aria-label="Your Name" autocomplete="off">
    <button class="pri" id="ngo" style="width:100%">Aage badho</button>
    <p class="mute bad" id="nmsg"></p>
   </div>
@@ -81,7 +81,7 @@ td{padding:6px 4px;border-bottom:1px solid var(--line)}
  <section class="center" id="noRole" style="display:none">
   <div class="panel card">
    <h1>Role nahi mila</h1>
-   <p class="mute">Is ID ko abhi admin ya staff ka role nahi diya gaya. Admin se kaho.</p>
+   <p class="mute"> </p>
    <button data-logout="1">Logout</button>
   </div>
  </section>
@@ -94,7 +94,7 @@ td{padding:6px 4px;border-bottom:1px solid var(--line)}
   <section class="panel" id="enrollPanel">
    <div class="form">
     <input id="fEnroll" placeholder="Enroll no. likho" aria-label="Enroll no.">
-    <button class="pri" id="add">Enroll dekho</button>
+    <button class="pri" id="add">Enter</button>
     <span class="mute bad" id="msg"></span>
    </div>
   </section>
@@ -120,7 +120,7 @@ const firebaseConfig = {
   measurementId: "G-Z41B9RKG5K"
 };
 const app=initializeApp(firebaseConfig);
-// Login sirf isi tab mein rehta hai: tab band hote hi logout, naya tab = naya login.
+//
 const auth=initializeAuth(app,{persistence:browserSessionPersistence});
 const db=getFirestore(app);
 
